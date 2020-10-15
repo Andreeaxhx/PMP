@@ -15,8 +15,8 @@ class Covid{
     (true, true) -> Flip(0.8))
 
   private val aiCovid = CPD(covid,
-    false -> Flip(0.01),
-    true -> Flip(0.7))
+    false -> Flip(0.25),
+    true -> Flip(0.75))
 
   def main(args: Array[String]) {
     aiCovid.observe(true)
