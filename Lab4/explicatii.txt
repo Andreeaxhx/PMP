@@ -1,0 +1,123 @@
+Ex. 2 (Ex. 1)
+
+Cand NU tinem cont de partea pe care se da jos din pat:
+    Today's greeting is "Hello, world!" with probability 0.27999999999999997.
+    (Probabilitatea ca greetingToday sa fie "Hello, world!" este suma dintre
+    0.2*0.6 (probabilitatea ca azi sa fie insorit * probabilitatea ca greetingul sa fie "Hello, world!")
+    si 0.8*0.2 (probabilitatea ca azi sa NU fie insorit * probabilitatea ca greetingul sa fie "Hello, world!"))
+    0.12+0.16=0.28
+
+Cand tinem cont de partea pe care se da jos din pat:
+    Today's greeting is "Hello, world!" with probability 0.13999999999999999.
+    Cand tinem cont de partea de pat pe care se da jos, probabilitatea ca greetingul sa fie "Hello, world!" scade.
+    Mai exact, se injumatateste, pentru ca probabilitatea ca partea de pat sa fie cea corecta si deci greetingul sa fie
+    ca inainte,  este de 0.5. Astfel, avem 0.5*0.28=0.14
+
+Ex. 3 (Ex. 1)
+
+a
+val x = Flip(0.4)
+val y = Flip(0.4)
+val z = x
+val w = x === z
+println(VariableElimination.probability(w, true))
+
+Pentru cazul a, z ia valoarea lui x, astfel incat atunci cand se calculeaza probabilitatea lui w,
+adica probabilitatea ca x sa fie egal cu x, aceasta va fi mereu 1.
+
+b
+val x = Flip(0.4)
+val y = Flip(0.4)
+val z = y
+val w = x === z
+println(VariableElimination.probability(w, true))
+
+Pentru cazul b, z ia valoarea lui y, astfel incat incat atunci cand se calculeaza probabilitatea lui w,
+adica probabilitatea ca x sa fie egal cu y, intervin doua situatii:
+    cazul in care ambele variabile sunt TRUE si acest lucru se intampla cu o probabilitate de 0.4 * 0.4 = 0.16
+    si cazul in care ambele variabile sunt FALSE, fapt ce se intampla cu o probabilitate de 0.6 * 0.6 = 0.36.
+In concluzie, valoarea lui x este egala cu valoarea lui y cu o probabilitate de 0.16 + 0.36 = 0.52.
+
+Ex. 4 (Ex. 2)
+
+Probabilitatea ca asuma sa fie 11 la aruncarea a doua zaruri este 2 ((5,6), (6,5)) / 36 = 0.05
+Probabilitatea ca asuma sa fie 11 la aruncarea a trei zaruri este 27/216=0.125
+    ->Probabilitatea creste pentru ca desi avem mai multe cazuri posibile, numarul cazurilor favorabile creste considerabil mai mult.
+      val die1 = FromRange(1, 7)
+      val die2 = FromRange(1, 7)
+      val die3 = FromRange(1, 7)
+
+      val total = Apply(die1, die2, die3, (i1: Int, i2: Int, i3: Int) => i1 + i2 + i3)
+      println(VariableElimination.probability(total, 11))
+
+      0.125
+
+Avand in vedere ca functia Apply poate lua pana la maxim 5 argumente, solutia merge pentru 5 zaruri.
+    ->val die1 = FromRange(1, 7)
+      val die2 = FromRange(1, 7)
+      val die3 = FromRange(1, 7)
+      val die4 = FromRange(1, 7)
+      val die5 = FromRange(1, 7)
+
+      val total = Apply(die1, die2, die3, die4, die5, (i1: Int, i2: Int, i3: Int, i4: Int, i5: Int) => i1 + i2 + i3 + i4 + i5)
+      println(VariableElimination.probability(total, 11))
+
+      0.026363168724279837
+
+Ex. 5 (Ex. 3)
+
+Probabilitatea ca la aruncarea a doua zaruri a caror suma este mai mare ca 8, primul zar sa fie 6 este:
+    0.4
+    Asta pentru ca se numara cate cazuri posibile avem ca suma zarurilor sa fie mai mare ca 8
+    (9:(4,5 5,4 6,3 3,6), 10:(5,5 6,4 4,6), 11:(5,6 6,5), 12:(6,6)) = 10
+    si in cate dintre aceste cazuri primul zar are valoarea 6
+    (6,3 6,4 6,5 6,6) = 4
+    si se imparte numarul de cazuri favorabile la numarul de cazuri posibile
+    4/10=0.4
+
+Probabilitatea ca la aruncarea a doua zaruri a caror produs e un numar impar, acest produs sa fie mai mare ca 1
+    val die1 = FromRange(1, 7)
+    val die2 = FromRange(1, 7)
+    val total = Apply(die1, die2, (i1: Int, i2: Int) => i1 * i2)
+    total.addCondition((i: Int) => i % 2 == 1 )
+    println(VariableElimination.probability(total, (i: Int)=> i>1))
+        0.8888888888888888
+
+Probabilitatea ca la aruncarea a trei zaruri a caror suma este in intervalul [8, 15), aceasta suma sa fie para
+    val die1 = FromRange(1, 7)
+    val die2 = FromRange(1, 7)
+    val die3 = FromRange(1, 7)
+    val total = Apply(die1, die2, die3, (i1: Int, i2: Int, i3: Int) => i1 + i2 +i3)
+    total.addCondition((i: Int) => i >= 8 && i<15)
+    println(VariableElimination.probability(total, (i: Int) => i % 2 == 0))
+        0.546583850931677
+
+Ex. 6 (Ex. 4)
+
+    def doubles1 = {
+      val die1 = FromRange(1, 7)
+      val die2 = FromRange(1, 7)
+      die1 === die2
+    }
+
+    def doubles2 = {
+      val die1 = FromRange(1, 7)
+      val die2 = FromRange(1, 7)
+      die1 === die2 && !(die1 === 1)
+    }
+
+    def doubles3 = {
+      val die1 = FromRange(1, 7)
+      val die2 = FromRange(1, 7)
+      die1 === die2 && !(die1 === 1) && !(die1 === 2)
+    }
+    val jail = doubles1 && doubles2 && doubles3
+    println(VariableElimination.probability(jail, true))
+
+Probabilitatea ca la trei aruncari, zarurile sa fie de fiecare data duble e 0.004629629629629629 asta pentru ca se inmultesc
+probabilitatile ca zarurile sa fie duble la fiecare dintre cele 3 aruncari: 1/6 * 1/6 * 1/6
+Daca adaugam conditia ca zarurile sa fie diferite, atunci produsul se transforma in: 1/6 * 5/36 * 4/36 = 0.002
+
+Ceea ce am facut eu in codul de mai sus, a fost sa mai adaug o conditie in plus pentru a doua aruncare si doua conditii pentru
+a treia. Acele conditii asigura ca probabilitatea la a doua si a treia aruncare sa fie 5/36, respectiv 4/36.
+    0.00257201646090535
