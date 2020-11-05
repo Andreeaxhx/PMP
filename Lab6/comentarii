@@ -1,0 +1,126 @@
+object Ex1 {
+  def tennis(
+              probP1ServeWin: Double, probP1Winner: Double, probP1Error: Double,
+              probP2ServeWin: Double, probP2Winner: Double, probP2Error: Double):
+    //se declara variablie de tip double pentru fiecare dintre probabilitatile:
+        //player 1/2 castiga serva
+        //player 1/2 castiga jocul
+        //player 1/2 face o eroare
+
+  Element[Boolean] = {
+    def rally(firstShot: Boolean, player1: Boolean): Element[Boolean] = {
+      //se declara variabile de tip boolean pentru prima aruncare si pentru player 1
+      val pWinner =
+        if (firstShot && player1) probP1ServeWin
+          //daca este prima aruncare si daca ea este facuta de player 1, atunci probabilitatea ca un player sa castige
+          //este prbabilitatea ca player 1 sa castige serva
+        else if (firstShot && !player1) probP2ServeWin
+          //daca este prima aruncare si daca ea este facuta de player 2, atunci probabilitatea ca un player sa castige
+          //este prbabilitatea ca player 2 sa castige serva
+        else if (player1) probP1Winner
+          //daca s-a trecut de prima aruncare, atunci probabilitatea ca un player sa castige este prbabilitatea ca
+          //player 1 sa castige jocul
+        else probP2Winner
+          //daca s-a trecut de prima aruncare, atunci probabilitatea ca un player sa castige este prbabilitatea ca
+          //player 2 sa castige jocul
+      val pError = if (player1) probP1Error else probP2Error
+          //daca e randul playerului 1, atunci probabilitatea de eroare ia valoarea probabilitatii de eroare a playerului 1
+          //in cc, ia valoarea probabilitatii de eroare a playerului 2
+      val winner = Flip(pWinner)
+          //pWinner ar putea fi una dintre cele doua probabilitati de castig: a playerului 1 sau a playerului 2
+      val error = Flip(pError)
+          //pError ar putea fi una dintre cele doua probabilitati de eroare: a playerului 1 sau a playerului 2
+      If(winner, Constant(player1),
+        If(error, Constant(!player1),
+          rally(false, !player1)))
+    }
+
+    def game(
+              p1Serves: Boolean, p1Points: Element[Int],
+              p2Points: Element[Int]): Element[Boolean] = {
+      //se declara variabile pentru a memora daca player 1 serveste, si si cate puncte are fiecare
+      val p1WinsPoint = rally(true, p1Serves)
+      //p1WinsPoint va memora probabilitatea ca player 1 sa castige un punct, avand in vedere ca e prima runda
+      val newP1Points =
+        Apply(p1WinsPoint, p1Points, (wins: Boolean, points: Int) =>
+          if (wins) points + 1 else points)
+      //in newP1Points se actualizeaza scorul, insemnand ca daca player 1 castiga, punctele lui cresc cu 1
+      //daca nu, raman la fel
+      val newP2Points =
+        Apply(p1WinsPoint, p2Points, (wins: Boolean, points: Int) =>
+          if (wins) points else points + 1)
+      //la fel pentru player 2
+      val p1WinsGame =
+        Apply(newP1Points, newP2Points, (p1: Int, p2: Int) =>
+          p1 >= 4 && p1 - p2 >= 2)
+      //pentru a stabili cine castiga jocul, se atribuie o valoare de adevar variabilelor p1WinsGame si p2WinsGame
+      //daca player 1 are cel putin 4 puncte si player 2 are cu cel putin 2 puncte mai putin, atunci valoarea
+      //de adevar pentru p1WinsGame este setata True, ceea ce inseamna ca player 1 castiga jocul
+      val p2WinsGame =
+        Apply(newP2Points, newP1Points, (p2: Int, p1: Int) =>
+          p2 >= 4 && p2 - p1 >= 2)
+      //la fel pentru player 2
+      val gameOver = p1WinsGame || p2WinsGame
+      //daca unul dintre jucatori castiga, jocul se incheie
+      If(gameOver, p1WinsGame, game(p1Serves, newP1Points, newP2Points))
+      //se actualizeaza scorul tinand cont de cine a castigat meciul, cine serveste si scorurile actuale
+    }
+
+    def play(
+              p1Serves: Boolean, p1Sets: Element[Int], p2Sets: Element[Int],
+              p1Games: Element[Int], p2Games: Element[Int]): Element[Boolean] = {
+      //pStes numara cate partide a castigat fiecare player, iar pGames numara cate meciuri a castigat fiecare player
+      val p1WinsGame = game(p1Serves, Constant(0), Constant(0))
+      //in p1WinsGame se retine daca player 1 castiga un meci sau nu
+      val newP1Games =
+      //si pentru a actualiza scorul
+        Apply(p1WinsGame, p1Games, p2Games,
+          (wins: Boolean, p1: Int, p2: Int) =>
+            //se verifica mai intai daca player 1 castiga
+            if (wins) {
+              //si daca da, se verifica scorul actual
+              if (p1 >= 5) 0 else p1 + 1
+              //daca scorul playerului 1 e cel putin 5, el devine 0
+              //daca nu, creste cu 1
+            } else {
+              //daca player 1 pierde, se verfica scorul actual al playerului 2 si daca e cel putin 5, devine 0
+              //daca nu, ia valoarea scorului playerului 1
+              if (p2 >= 5) 0 else p1
+            })
+      val newP2Games = {
+        //similar pentru player 2
+        Apply(p1WinsGame, p1Games, p2Games,
+          (wins: Boolean, p1: Int, p2: Int) =>
+            if (wins) {
+              if (p1 >= 5) 0 else p2
+            } else {
+              if (p2 >= 5) 0 else p2 + 1
+            })
+      }
+      val newP1Sets = {
+        //pentru actualizarea seturilor castigate de player 1
+        Apply(p1WinsGame, p1Games, p1Sets,
+          (wins: Boolean, games: Int, sets: Int) =>
+            if (wins && games == 5) sets + 1 else sets)
+            //se verficia daca player 1 castiga si daca are pana in acel moment 5 meciuri castigate,
+            //si daca da se actualizeaza numarul de seturi castigate
+            //dca nu, ramane la fel
+      }
+      val newP2Sets = {
+        //la fel pentru player 2
+        Apply(p1WinsGame, p2Games, p2Sets,
+          (wins: Boolean, games: Int, sets: Int) =>
+            if (!wins && games == 5) sets + 1 else sets)
+      }
+      val matchOver = {
+        //meciul se termina cand unul dintre jucatori castiga cel putin doua seturi
+        Apply(newP1Sets, newP2Sets, (p1: Int, p2: Int) =>
+          p1 >= 2 || p2 >= 2)
+      }
+      If(matchOver,
+        Apply(newP1Sets, (sets: Int) => sets >= 2),
+        play(!p1Serves, newP1Sets, newP2Sets, newP1Games, newP2Games))
+    }
+
+    play(true, Constant(0), Constant(0), Constant(0), Constant(0))
+  }
