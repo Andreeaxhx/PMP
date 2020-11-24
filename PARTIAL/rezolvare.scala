@@ -28,11 +28,13 @@ object rezolvare {
 
       amanatAlarma.observe(true) //presupunem ca am amanat alarma
       println("Care este probabilitatea sa ajungi la serviciu la timp, avand in vedere ca ai adormit?\n"+VariableElimination.probability(intarzieLaMunca, false))
-      amanatAlarma.unobserve()
+      //si calculam probabilitatea in functie de aceasta observatie
+        amanatAlarma.unobserve()
 
-      intarzieLaMunca.observe(false) presupunem ca nu am intarziat la munca==am ajuns la timp
+      intarzieLaMunca.observe(false) //presupunem ca nu am intarziat la munca==am ajuns la timp
       println("Avand in vedere ca ai ajuns la timp la serviciu, care este probabilitatea să iti fi setat alarma?\n"+VariableElimination.probability(uitatSetatAlarma, false))
-      amanatAlarma.unobserve()
+        //si calculam probabilitatea in functie de aceasta observatie
+        amanatAlarma.unobserve()
 
       println("Care este probabilitatea sa adormi?\n"+VariableElimination.probability(trezitTarziu, true)) //probabilitatea de a ma trezi tarziu
 
